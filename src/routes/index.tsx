@@ -333,10 +333,35 @@ function Index() {
           </div>
         </div>
 
+        {selectedIds.length > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border bg-accent/40 px-3 py-2">
+            <span className="text-sm font-medium">{selectedIds.length} selected</span>
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => bulkSetActive(true)}>
+                <CheckCircle2 className="mr-2 h-4 w-4" />Activate
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => bulkSetActive(false)}>
+                <XCircle className="mr-2 h-4 w-4" />Deactivate
+              </Button>
+              <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />Delete
+              </Button>
+              <Button size="sm" variant="ghost" onClick={clearSelection}>Clear</Button>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-lg border bg-card overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
+                    onCheckedChange={(v) => toggleSelectAll(v === true)}
+                    aria-label="Select all"
+                  />
+                </TableHead>
                 <TableHead>ID</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Type</TableHead>
@@ -351,12 +376,19 @@ function Index() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={10} className="py-12 text-center text-muted-foreground">
                     No tasks found. Click “New task” to add one.
                   </TableCell>
                 </TableRow>
               ) : filtered.map((t) => (
-                <TableRow key={t.taskId}>
+                <TableRow key={t.taskId} data-state={selected.has(t.taskId) ? "selected" : undefined}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selected.has(t.taskId)}
+                      onCheckedChange={() => toggleSelect(t.taskId)}
+                      aria-label={`Select ${t.taskId}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-mono text-xs">{t.taskId}</TableCell>
                   <TableCell className="font-medium">{t.name}</TableCell>
                   <TableCell><Badge variant="secondary">{t.type}</Badge></TableCell>
