@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import { exportTasksToXlsx, parseTasksFromFile } from "@/lib/task-xlsx";
+import { exportTasksToXlsx, exportTasksToJson, parseTasksFromFile } from "@/lib/task-xlsx";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -223,17 +223,33 @@ function Index() {
             <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
               <Upload className="mr-2 h-4 w-4" />Import
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (!tasks.length) return toast.info("No tasks to export");
-                exportTasksToXlsx(tasks);
-                toast.success("Exported to XLSX");
-              }}
-            >
-              <Download className="mr-2 h-4 w-4" />Export
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="mr-2 h-4 w-4" />Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (!tasks.length) return toast.info("No tasks to export");
+                    exportTasksToXlsx(tasks);
+                    toast.success("Exported to XLSX");
+                  }}
+                >
+                  Export as XLSX
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (!tasks.length) return toast.info("No tasks to export");
+                    exportTasksToJson(tasks);
+                    toast.success("Exported to JSON");
+                  }}
+                >
+                  Export as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">By type</Button>
