@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Task } from "./task-types";
 
@@ -184,16 +184,24 @@ export const taskStore = {
   },
 };
 
-const EMPTY_TASKS: Task[] = [];
-
 export function useTasks(): Task[] {
-  const [, setReady] = useState(loaded);
+  const [snapshot, setSnapshot] = useState<Task[]>(() => [...tasks]);
+
   useEffect(() => {
-    ensureLoaded()?.then(() => setReady(true));
+    let active = true;
+    const update = () => {
+      if (active) setSnapshot([...tasks]);
+    };
+
+    update();
+    ensureLoaded()?.then(update);
+    const unsubscribe = taskStore.subscribe(update);
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
-  return useSyncExternalStore(
-    (cb) => taskStore.subscribe(cb),
-    () => tasks,
-    () => EMPTY_TASKS,
-  );
+
+  return snapshot;
 }
