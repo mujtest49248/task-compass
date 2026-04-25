@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { exportTasksToXlsx, parseTasksFromFile } from "@/lib/task-xlsx";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,6 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -64,6 +73,8 @@ function Index() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
