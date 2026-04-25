@@ -58,6 +58,9 @@ function Index() {
   const tasks = useTasks();
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [frequencyFilter, setFrequencyFilter] = useState<string>("all");
+  const [assigneeFilter, setAssigneeFilter] = useState<string>("all");
+  const [activeFilter, setActiveFilter] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -88,9 +91,18 @@ function Index() {
     }
   };
 
+  const assignees = useMemo(
+    () => Array.from(new Set(tasks.map((t) => t.assignee).filter(Boolean))).sort(),
+    [tasks],
+  );
+
   const filtered = useMemo(() => {
     return tasks.filter((t) => {
       if (typeFilter !== "all" && t.type !== typeFilter) return false;
+      if (frequencyFilter !== "all" && t.frequency !== frequencyFilter) return false;
+      if (assigneeFilter !== "all" && t.assignee !== assigneeFilter) return false;
+      if (activeFilter === "active" && !t.active) return false;
+      if (activeFilter === "inactive" && t.active) return false;
       if (!query) return true;
       const q = query.toLowerCase();
       return (
@@ -99,7 +111,22 @@ function Index() {
         t.assignee.toLowerCase().includes(q)
       );
     });
-  }, [tasks, query, typeFilter]);
+  }, [tasks, query, typeFilter, frequencyFilter, assigneeFilter, activeFilter]);
+
+  const hasActiveFilters =
+    typeFilter !== "all" ||
+    frequencyFilter !== "all" ||
+    assigneeFilter !== "all" ||
+    activeFilter !== "all" ||
+    query !== "";
+
+  const clearFilters = () => {
+    setQuery("");
+    setTypeFilter("all");
+    setFrequencyFilter("all");
+    setAssigneeFilter("all");
+    setActiveFilter("all");
+  };
 
   const stats = useMemo(() => ({
     total: tasks.length,
@@ -164,8 +191,8 @@ function Index() {
           <StatCard label="Auto-collected" value={stats.auto} />
         </div>
 
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search by ID, name, assignee…"
@@ -174,15 +201,54 @@ function Index() {
               className="pl-9"
             />
           </div>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="sm:w-44"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All types</SelectItem>
-              <SelectItem value="K">K</SelectItem>
-              <SelectItem value="R">R</SelectItem>
-              <SelectItem value="O">O</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="Type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="K">K</SelectItem>
+                <SelectItem value="R">R</SelectItem>
+                <SelectItem value="O">O</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={frequencyFilter} onValueChange={setFrequencyFilter}>
+              <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Frequency" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All frequencies</SelectItem>
+                <SelectItem value="Daily">Daily</SelectItem>
+                <SelectItem value="Weekly">Weekly</SelectItem>
+                <SelectItem value="Monthly">Monthly</SelectItem>
+                <SelectItem value="Quarterly">Quarterly</SelectItem>
+                <SelectItem value="Yearly">Yearly</SelectItem>
+                <SelectItem value="Ad-hoc">Ad-hoc</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+              <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="Assignee" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All assignees</SelectItem>
+                {assignees.map((a) => (
+                  <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={activeFilter} onValueChange={setActiveFilter}>
+              <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            )}
+            <span className="ml-auto text-sm text-muted-foreground">
+              {filtered.length} of {tasks.length}
+            </span>
+          </div>
         </div>
 
         <div className="rounded-lg border bg-card overflow-hidden">
