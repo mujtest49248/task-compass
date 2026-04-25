@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -188,6 +188,14 @@ function Index() {
       toast.success(`${ids.length} ${type} task(s) ${active ? "activated" : "deactivated"}`);
     } catch {
       toast.error("Failed to update tasks");
+    }
+  };
+
+  const toggleTaskActive = async (id: string) => {
+    try {
+      await taskStore.toggleActive(id);
+    } catch {
+      toast.error("Failed to update task status");
     }
   };
 
@@ -419,10 +427,16 @@ function Index() {
                   </TableCell>
                   <TableCell>{t.assignee}</TableCell>
                   <TableCell>
-                    <Switch
-                      checked={t.active}
-                      onCheckedChange={() => taskStore.toggleActive(t.taskId)}
-                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={t.active ? "default" : "outline"}
+                      onClick={() => toggleTaskActive(t.taskId)}
+                      aria-pressed={t.active}
+                      className="min-w-24"
+                    >
+                      {t.active ? "Active" : "Inactive"}
+                    </Button>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => setEditing(t)}>
