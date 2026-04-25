@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Search, ListChecks } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload } from "lucide-react";
+import { toast } from "sonner";
+import { exportTasksToXlsx, parseTasksFromFile } from "@/lib/task-xlsx";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +61,32 @@ function Index() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const { valid, errors } = await parseTasksFromFile(file);
+      let added = 0;
+      let updated = 0;
+      valid.forEach((t) => {
+        if (taskStore.get(t.taskId)) updated++;
+        else added++;
+        taskStore.upsert(t);
+      });
+      if (errors.length) {
+        toast.warning(`Imported ${valid.length} (${added} new, ${updated} updated). ${errors.length} row(s) skipped`, {
+          description: errors.slice(0, 3).map((e) => `Row ${e.row}: ${e.message}`).join(" • "),
+        });
+      } else {
+        toast.success(`Imported ${valid.length} task(s) — ${added} new, ${updated} updated`);
+      }
+    } catch (err) {
+      toast.error("Failed to read file", { description: err instanceof Error ? err.message : "Unknown error" });
+    }
+  };
 
   const filtered = useMemo(() => {
     return tasks.filter((t) => {
@@ -94,15 +122,38 @@ function Index() {
               <p className="text-xs text-muted-foreground">Collect, manage & edit operational tasks</p>
             </div>
           </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="mr-2 h-4 w-4" />New task</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>Create task</DialogTitle></DialogHeader>
-              <TaskForm onDone={() => setCreateOpen(false)} />
-            </DialogContent>
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={handleImport}
+            />
+            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+              <Upload className="mr-2 h-4 w-4" />Import
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (!tasks.length) return toast.info("No tasks to export");
+                exportTasksToXlsx(tasks);
+                toast.success("Exported to XLSX");
+              }}
+            >
+              <Download className="mr-2 h-4 w-4" />Export
+            </Button>
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm"><Plus className="mr-2 h-4 w-4" />New task</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader><DialogTitle>Create task</DialogTitle></DialogHeader>
+                <TaskForm onDone={() => setCreateOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </header>
 
