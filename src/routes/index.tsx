@@ -139,6 +139,58 @@ function Index() {
     setActiveFilter("all");
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Set());
+
+  const selectedIds = useMemo(
+    () => filtered.map((t) => t.taskId).filter((id) => selected.has(id)),
+    [filtered, selected],
+  );
+  const allVisibleSelected = filtered.length > 0 && selectedIds.length === filtered.length;
+  const someVisibleSelected = selectedIds.length > 0 && !allVisibleSelected;
+  const toggleSelectAll = (checked: boolean) => {
+    setSelected(checked ? new Set(filtered.map((t) => t.taskId)) : new Set());
+  };
+
+  const bulkSetActive = async (active: boolean) => {
+    try {
+      await taskStore.setActiveMany(selectedIds, active);
+      toast.success(`${selectedIds.length} task(s) ${active ? "activated" : "deactivated"}`);
+      clearSelection();
+    } catch {
+      toast.error("Failed to update tasks");
+    }
+  };
+  const bulkDelete = async () => {
+    const count = selectedIds.length;
+    try {
+      await taskStore.removeMany(selectedIds);
+      toast.success(`${count} task(s) deleted`);
+      clearSelection();
+    } catch {
+      toast.error("Failed to delete tasks");
+    } finally {
+      setBulkDeleteOpen(false);
+    }
+  };
+  const setActiveByType = async (type: Task["type"], active: boolean) => {
+    const ids = tasks.filter((t) => t.type === type).map((t) => t.taskId);
+    if (!ids.length) return toast.info(`No tasks of type ${type}`);
+    try {
+      await taskStore.setActiveMany(ids, active);
+      toast.success(`${ids.length} ${type} task(s) ${active ? "activated" : "deactivated"}`);
+    } catch {
+      toast.error("Failed to update tasks");
+    }
+  };
+
   const stats = useMemo(() => ({
     total: tasks.length,
     active: tasks.filter((t) => t.active).length,
