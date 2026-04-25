@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { exportTasksToXlsx, parseTasksFromFile } from "@/lib/task-xlsx";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,6 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -64,6 +73,8 @@ function Index() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +139,58 @@ function Index() {
     setActiveFilter("all");
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Set());
+
+  const selectedIds = useMemo(
+    () => filtered.map((t) => t.taskId).filter((id) => selected.has(id)),
+    [filtered, selected],
+  );
+  const allVisibleSelected = filtered.length > 0 && selectedIds.length === filtered.length;
+  const someVisibleSelected = selectedIds.length > 0 && !allVisibleSelected;
+  const toggleSelectAll = (checked: boolean) => {
+    setSelected(checked ? new Set(filtered.map((t) => t.taskId)) : new Set());
+  };
+
+  const bulkSetActive = async (active: boolean) => {
+    try {
+      await taskStore.setActiveMany(selectedIds, active);
+      toast.success(`${selectedIds.length} task(s) ${active ? "activated" : "deactivated"}`);
+      clearSelection();
+    } catch {
+      toast.error("Failed to update tasks");
+    }
+  };
+  const bulkDelete = async () => {
+    const count = selectedIds.length;
+    try {
+      await taskStore.removeMany(selectedIds);
+      toast.success(`${count} task(s) deleted`);
+      clearSelection();
+    } catch {
+      toast.error("Failed to delete tasks");
+    } finally {
+      setBulkDeleteOpen(false);
+    }
+  };
+  const setActiveByType = async (type: Task["type"], active: boolean) => {
+    const ids = tasks.filter((t) => t.type === type).map((t) => t.taskId);
+    if (!ids.length) return toast.info(`No tasks of type ${type}`);
+    try {
+      await taskStore.setActiveMany(ids, active);
+      toast.success(`${ids.length} ${type} task(s) ${active ? "activated" : "deactivated"}`);
+    } catch {
+      toast.error("Failed to update tasks");
+    }
+  };
+
   const stats = useMemo(() => ({
     total: tasks.length,
     active: tasks.filter((t) => t.active).length,
@@ -171,6 +234,25 @@ function Index() {
             >
               <Download className="mr-2 h-4 w-4" />Export
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">By type</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Toggle active by type</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {(["K", "R", "O"] as const).map((t) => (
+                  <div key={t}>
+                    <DropdownMenuItem onClick={() => setActiveByType(t, true)}>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />Activate all {t}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveByType(t, false)}>
+                      <XCircle className="mr-2 h-4 w-4" />Deactivate all {t}
+                    </DropdownMenuItem>
+                  </div>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
                 <Button size="sm"><Plus className="mr-2 h-4 w-4" />New task</Button>
@@ -251,10 +333,35 @@ function Index() {
           </div>
         </div>
 
+        {selectedIds.length > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border bg-accent/40 px-3 py-2">
+            <span className="text-sm font-medium">{selectedIds.length} selected</span>
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => bulkSetActive(true)}>
+                <CheckCircle2 className="mr-2 h-4 w-4" />Activate
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => bulkSetActive(false)}>
+                <XCircle className="mr-2 h-4 w-4" />Deactivate
+              </Button>
+              <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />Delete
+              </Button>
+              <Button size="sm" variant="ghost" onClick={clearSelection}>Clear</Button>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-lg border bg-card overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
+                    onCheckedChange={(v) => toggleSelectAll(v === true)}
+                    aria-label="Select all"
+                  />
+                </TableHead>
                 <TableHead>ID</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Type</TableHead>
@@ -269,12 +376,19 @@ function Index() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={10} className="py-12 text-center text-muted-foreground">
                     No tasks found. Click “New task” to add one.
                   </TableCell>
                 </TableRow>
               ) : filtered.map((t) => (
-                <TableRow key={t.taskId}>
+                <TableRow key={t.taskId} data-state={selected.has(t.taskId) ? "selected" : undefined}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selected.has(t.taskId)}
+                      onCheckedChange={() => toggleSelect(t.taskId)}
+                      aria-label={`Select ${t.taskId}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-mono text-xs">{t.taskId}</TableCell>
                   <TableCell className="font-medium">{t.name}</TableCell>
                   <TableCell><Badge variant="secondary">{t.type}</Badge></TableCell>
@@ -332,6 +446,21 @@ function Index() {
                 setDeletingId(null);
               }}
             >Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.length} task(s)?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the selected tasks. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={bulkDelete}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
