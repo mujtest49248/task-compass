@@ -172,7 +172,7 @@ export const taskStore = {
     tasks = tasks.map((t) => (idSet.has(t.taskId) ? { ...t, ...patch } : t));
     emit();
     // Build a row-shaped patch (only include keys present in patch)
-    const rowPatch: Record<string, unknown> = {};
+    const rowPatch: Partial<Row> = {};
     if ("type" in patch) rowPatch.type = patch.type;
     if ("valueType" in patch) rowPatch.value_type = patch.valueType;
     if ("collectionType" in patch) rowPatch.collection_type = patch.collectionType;
