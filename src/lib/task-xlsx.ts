@@ -41,6 +41,20 @@ export function exportTasksToXlsx(tasks: Task[]) {
   XLSX.writeFile(wb, `tasks-${stamp}.xlsx`);
 }
 
+export function exportTasksToJson(tasks: Task[]) {
+  const json = JSON.stringify(tasks, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `tasks-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export interface ImportResult {
   valid: Task[];
   errors: { row: number; message: string }[];
