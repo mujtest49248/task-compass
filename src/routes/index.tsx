@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-
+import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -427,16 +427,10 @@ function Index() {
                   </TableCell>
                   <TableCell>{t.assignee}</TableCell>
                   <TableCell>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={t.active ? "default" : "outline"}
-                      onClick={() => toggleTaskActive(t.taskId)}
-                      aria-pressed={t.active}
-                      className="min-w-24"
-                    >
-                      {t.active ? "Active" : "Inactive"}
-                    </Button>
+                    <Switch
+                      checked={t.active}
+                      onCheckedChange={() => toggleTaskActive(t.taskId)}
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => setEditing(t)}>
