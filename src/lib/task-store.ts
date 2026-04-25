@@ -132,10 +132,11 @@ export const taskStore = {
     }
   },
   async toggleActive(id: string) {
-    const t = tasks.find((x) => x.taskId === id);
-    if (!t) return;
-    const next = !t.active;
-    t.active = next;
+    const current = tasks.find((x) => x.taskId === id);
+    if (!current) return;
+    const next = !current.active;
+    const prev = tasks;
+    tasks = tasks.map((t) => (t.taskId === id ? { ...t, active: next } : t));
     emit();
     const { error } = await supabase
       .from("tasks")
@@ -143,7 +144,7 @@ export const taskStore = {
       .eq("task_id", id);
     if (error) {
       console.error("Failed to toggle task:", error);
-      t.active = !next;
+      tasks = prev;
       emit();
       throw error;
     }
