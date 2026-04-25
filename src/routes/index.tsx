@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle, Edit3 } from "lucide-react";
 import { toast } from "sonner";
 import { exportTasksToXlsx, exportTasksToJson, parseTasksFromFile } from "@/lib/task-xlsx";
 import { Toaster } from "@/components/ui/sonner";
@@ -50,6 +50,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TaskForm } from "@/components/TaskForm";
+import { BulkEditForm } from "@/components/BulkEditForm";
 import { taskStore, useTasks } from "@/lib/task-store";
 import type { Task } from "@/lib/task-types";
 
@@ -75,6 +76,7 @@ function Index() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -361,6 +363,9 @@ function Index() {
           <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border bg-accent/40 px-3 py-2">
             <span className="text-sm font-medium">{selectedIds.length} selected</span>
             <div className="ml-auto flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => setBulkEditOpen(true)}>
+                <Edit3 className="mr-2 h-4 w-4" />Edit
+              </Button>
               <Button size="sm" variant="outline" onClick={() => bulkSetActive(true)}>
                 <CheckCircle2 className="mr-2 h-4 w-4" />Activate
               </Button>
@@ -473,6 +478,21 @@ function Index() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={bulkEditOpen} onOpenChange={setBulkEditOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Bulk edit {selectedIds.length} task(s)</DialogTitle></DialogHeader>
+          {bulkEditOpen && (
+            <BulkEditForm
+              ids={selectedIds}
+              onDone={() => {
+                setBulkEditOpen(false);
+                clearSelection();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
         <AlertDialogContent>
