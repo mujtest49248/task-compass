@@ -234,6 +234,25 @@ function Index() {
             >
               <Download className="mr-2 h-4 w-4" />Export
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">By type</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Toggle active by type</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {(["K", "R", "O"] as const).map((t) => (
+                  <div key={t}>
+                    <DropdownMenuItem onClick={() => setActiveByType(t, true)}>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />Activate all {t}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveByType(t, false)}>
+                      <XCircle className="mr-2 h-4 w-4" />Deactivate all {t}
+                    </DropdownMenuItem>
+                  </div>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
                 <Button size="sm"><Plus className="mr-2 h-4 w-4" />New task</Button>
