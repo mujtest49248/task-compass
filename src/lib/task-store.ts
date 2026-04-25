@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import type { Task } from "./task-types";
 
 let tasks: Task[] = [];
@@ -172,7 +173,7 @@ export const taskStore = {
     tasks = tasks.map((t) => (idSet.has(t.taskId) ? { ...t, ...patch } : t));
     emit();
     // Build a row-shaped patch (only include keys present in patch)
-    const rowPatch: Partial<Row> = {};
+    const rowPatch: TablesUpdate<"tasks"> = {};
     if ("type" in patch) rowPatch.type = patch.type;
     if ("valueType" in patch) rowPatch.value_type = patch.valueType;
     if ("collectionType" in patch) rowPatch.collection_type = patch.collectionType;
