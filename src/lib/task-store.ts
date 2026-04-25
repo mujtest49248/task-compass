@@ -148,6 +148,35 @@ export const taskStore = {
       throw error;
     }
   },
+  async setActiveMany(ids: string[], active: boolean) {
+    if (!ids.length) return;
+    const prev = tasks.map((t) => ({ ...t }));
+    tasks = tasks.map((t) => (ids.includes(t.taskId) ? { ...t, active } : t));
+    emit();
+    const { error } = await supabase
+      .from("tasks")
+      .update({ active })
+      .in("task_id", ids);
+    if (error) {
+      console.error("Failed to bulk update tasks:", error);
+      tasks = prev;
+      emit();
+      throw error;
+    }
+  },
+  async removeMany(ids: string[]) {
+    if (!ids.length) return;
+    const prev = tasks;
+    tasks = tasks.filter((t) => !ids.includes(t.taskId));
+    emit();
+    const { error } = await supabase.from("tasks").delete().in("task_id", ids);
+    if (error) {
+      console.error("Failed to bulk delete tasks:", error);
+      tasks = prev;
+      emit();
+      throw error;
+    }
+  },
   subscribe(l: () => void) {
     listeners.add(l);
     return () => listeners.delete(l);
