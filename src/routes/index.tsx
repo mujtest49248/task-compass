@@ -122,15 +122,38 @@ function Index() {
               <p className="text-xs text-muted-foreground">Collect, manage & edit operational tasks</p>
             </div>
           </div>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="mr-2 h-4 w-4" />New task</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>Create task</DialogTitle></DialogHeader>
-              <TaskForm onDone={() => setCreateOpen(false)} />
-            </DialogContent>
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={handleImport}
+            />
+            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+              <Upload className="mr-2 h-4 w-4" />Import
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (!tasks.length) return toast.info("No tasks to export");
+                exportTasksToXlsx(tasks);
+                toast.success("Exported to XLSX");
+              }}
+            >
+              <Download className="mr-2 h-4 w-4" />Export
+            </Button>
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm"><Plus className="mr-2 h-4 w-4" />New task</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader><DialogTitle>Create task</DialogTitle></DialogHeader>
+                <TaskForm onDone={() => setCreateOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </header>
 
