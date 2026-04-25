@@ -183,6 +183,8 @@ export const taskStore = {
   },
 };
 
+const EMPTY_TASKS: Task[] = [];
+
 export function useTasks(): Task[] {
   const [, setReady] = useState(loaded);
   useEffect(() => {
@@ -191,6 +193,6 @@ export function useTasks(): Task[] {
   return useSyncExternalStore(
     (cb) => taskStore.subscribe(cb),
     () => tasks,
-    () => [],
+    () => EMPTY_TASKS,
   );
 }
