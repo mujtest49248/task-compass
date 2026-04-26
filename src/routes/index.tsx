@@ -105,7 +105,10 @@ function Index() {
   };
 
   const assignees = useMemo(
-    () => Array.from(new Set(tasks.map((t) => t.assignee).filter(Boolean))).sort(),
+    () =>
+      Array.from(new Set(tasks.map((t) => t.assignee).filter(Boolean))).sort((a, b) =>
+        a.localeCompare(b),
+      ),
     [tasks],
   );
 
