@@ -63,6 +63,40 @@ function taskToRow(t: Task) {
   };
 }
 
+const FIELD_MAP: Record<string, keyof TablesUpdate<"tasks">> = {
+  name: "name",
+  type: "type",
+  description: "description",
+  valueType: "value_type",
+  collectionType: "collection_type",
+  frequency: "frequency",
+  adHocDate: "ad_hoc_date",
+  thresholdType: "threshold_type",
+  thresholdNumeric: "threshold_numeric",
+  thresholdText: "threshold_text",
+  assignee: "assignee",
+  active: "active",
+};
+
+function normalizeFieldValue(key: string, value: unknown): unknown {
+  if (key === "adHocDate") return value ?? null;
+  if (key === "thresholdNumeric") {
+    return typeof value === "number" && !Number.isNaN(value) ? value : null;
+  }
+  if (key === "thresholdText" || key === "description") return value ?? "";
+  return value;
+}
+
+function buildRowPatch(patch: Partial<Task>): TablesUpdate<"tasks"> {
+  const rowPatch: TablesUpdate<"tasks"> = {};
+  for (const key of Object.keys(patch) as (keyof Task)[]) {
+    const column = FIELD_MAP[key];
+    if (!column) continue;
+    (rowPatch as Record<string, unknown>)[column] = normalizeFieldValue(key, patch[key]);
+  }
+  return rowPatch;
+}
+
 function emit() {
   listeners.forEach((l) => l());
 }
