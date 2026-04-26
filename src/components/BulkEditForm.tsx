@@ -80,17 +80,19 @@ export function BulkEditForm({ ids, onDone }: Props) {
     thresholdText: false,
     assignee: false,
     active: false,
+    link: false,
   });
   const [values, setValues] = useState<Partial<Task>>({
     type: "K",
     valueType: "Numeric",
     collectionType: "Manual",
     frequency: "Daily",
-    thresholdType: "MIN",
+    thresholdType: undefined,
     thresholdNumeric: undefined,
     thresholdText: "",
     assignee: "",
     active: true,
+    link: "",
   });
 
   const toggle = (k: keyof BulkFields) => setEnabled((p) => ({ ...p, [k]: !p[k] }));
