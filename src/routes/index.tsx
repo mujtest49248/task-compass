@@ -525,6 +525,21 @@ function Index() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ImportReviewDialog
+        open={reviewOpen}
+        drafts={reviewDrafts}
+        onCancel={() => {
+          setReviewOpen(false);
+          setReviewDrafts([]);
+        }}
+        onConfirm={(toImport) => {
+          const { added, updated } = importTasks(toImport);
+          toast.success(`Imported ${toImport.length} fixed task(s) — ${added} new, ${updated} updated`);
+          setReviewOpen(false);
+          setReviewDrafts([]);
+        }}
+      />
     </div>
   );
 }
