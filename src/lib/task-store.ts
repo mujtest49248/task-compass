@@ -63,6 +63,40 @@ function taskToRow(t: Task) {
   };
 }
 
+const FIELD_MAP: Record<string, keyof TablesUpdate<"tasks">> = {
+  name: "name",
+  type: "type",
+  description: "description",
+  valueType: "value_type",
+  collectionType: "collection_type",
+  frequency: "frequency",
+  adHocDate: "ad_hoc_date",
+  thresholdType: "threshold_type",
+  thresholdNumeric: "threshold_numeric",
+  thresholdText: "threshold_text",
+  assignee: "assignee",
+  active: "active",
+};
+
+function normalizeFieldValue(key: string, value: unknown): unknown {
+  if (key === "adHocDate") return value ?? null;
+  if (key === "thresholdNumeric") {
+    return typeof value === "number" && !Number.isNaN(value) ? value : null;
+  }
+  if (key === "thresholdText" || key === "description") return value ?? "";
+  return value;
+}
+
+function buildRowPatch(patch: Partial<Task>): TablesUpdate<"tasks"> {
+  const rowPatch: TablesUpdate<"tasks"> = {};
+  for (const key of Object.keys(patch) as (keyof Task)[]) {
+    const column = FIELD_MAP[key];
+    if (!column) continue;
+    (rowPatch as Record<string, unknown>)[column] = normalizeFieldValue(key, patch[key]);
+  }
+  return rowPatch;
+}
+
 function emit() {
   listeners.forEach((l) => l());
 }
@@ -172,24 +206,7 @@ export const taskStore = {
     const prev = tasks;
     tasks = tasks.map((t) => (idSet.has(t.taskId) ? { ...t, ...patch } : t));
     emit();
-    // Build a row-shaped patch (only include keys present in patch)
-    const rowPatch: TablesUpdate<"tasks"> = {};
-    if ("type" in patch) rowPatch.type = patch.type;
-    if ("valueType" in patch) rowPatch.value_type = patch.valueType;
-    if ("collectionType" in patch) rowPatch.collection_type = patch.collectionType;
-    if ("frequency" in patch) rowPatch.frequency = patch.frequency;
-    if ("adHocDate" in patch) rowPatch.ad_hoc_date = patch.adHocDate ?? null;
-    if ("thresholdType" in patch) rowPatch.threshold_type = patch.thresholdType;
-    if ("thresholdNumeric" in patch)
-      rowPatch.threshold_numeric =
-        typeof patch.thresholdNumeric === "number" && !Number.isNaN(patch.thresholdNumeric)
-          ? patch.thresholdNumeric
-          : null;
-    if ("thresholdText" in patch) rowPatch.threshold_text = patch.thresholdText ?? "";
-    if ("assignee" in patch) rowPatch.assignee = patch.assignee;
-    if ("active" in patch) rowPatch.active = patch.active;
-    if ("description" in patch) rowPatch.description = patch.description ?? "";
-    if ("name" in patch) rowPatch.name = patch.name;
+    const rowPatch = buildRowPatch(patch);
     const { error } = await supabase.from("tasks").update(rowPatch).in("task_id", ids);
     if (error) {
       console.error("Failed to bulk edit tasks:", error);
