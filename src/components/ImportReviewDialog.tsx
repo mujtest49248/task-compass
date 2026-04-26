@@ -40,17 +40,18 @@ interface Props {
 
 type EditableField = Exclude<keyof Task, "taskId">;
 
-const FIELDS: { key: EditableField; label: string; kind: "text" | "number" | "date" | "switch" | "select"; options?: readonly string[] }[] = [
+const FIELDS: { key: EditableField; label: string; kind: "text" | "number" | "date" | "switch" | "select" | "url"; options?: readonly string[] }[] = [
   { key: "name", label: "Name", kind: "text" },
   { key: "type", label: "Type", kind: "select", options: TASK_TYPES },
   { key: "valueType", label: "Value type", kind: "select", options: VALUE_TYPES },
   { key: "collectionType", label: "Collection", kind: "select", options: COLLECTION_TYPES },
   { key: "frequency", label: "Frequency", kind: "select", options: FREQUENCIES },
   { key: "adHocDate", label: "Ad-hoc date", kind: "date" },
-  { key: "thresholdType", label: "Threshold type", kind: "select", options: THRESHOLD_TYPES },
-  { key: "thresholdNumeric", label: "Threshold (numeric)", kind: "number" },
-  { key: "thresholdText", label: "Threshold (text)", kind: "text" },
+  { key: "thresholdType", label: "Threshold type (optional)", kind: "select", options: THRESHOLD_TYPES },
+  { key: "thresholdNumeric", label: "Threshold (numeric, optional)", kind: "number" },
+  { key: "thresholdText", label: "Threshold (text, optional)", kind: "text" },
   { key: "assignee", label: "Assignee", kind: "text" },
+  { key: "link", label: "Link (optional)", kind: "url" },
   { key: "description", label: "Description", kind: "text" },
   { key: "active", label: "Active", kind: "switch" },
 ];
@@ -191,7 +192,7 @@ export function ImportReviewDialog({ open, drafts: initial, onCancel, onConfirm 
       <div className="space-y-1">
         <Label className="text-xs">{field.label}</Label>
         <Input
-          type={field.kind === "date" ? "date" : "text"}
+          type={field.kind === "date" ? "date" : field.kind === "url" ? "url" : "text"}
           className={common}
           value={(value as string) ?? ""}
           onChange={(e) => onText(e.target.value)}

@@ -35,10 +35,11 @@ export function TaskForm({ initial, onDone }: Props) {
       name: "",
       type: "K",
       description: "",
+      link: "",
       valueType: "Numeric",
       collectionType: "Manual",
       frequency: "Daily",
-      thresholdType: "MIN",
+      thresholdType: undefined,
       thresholdText: "",
       assignee: "",
       active: true,
@@ -151,17 +152,23 @@ export function TaskForm({ initial, onDone }: Props) {
         )}
 
         <div className="space-y-2">
-          <Label>Threshold type</Label>
-          <Select value={form.thresholdType} onValueChange={(v) => set("thresholdType", v as Task["thresholdType"])}>
+          <Label>Threshold type (optional)</Label>
+          <Select
+            value={form.thresholdType ?? "__none"}
+            onValueChange={(v) =>
+              set("thresholdType", v === "__none" ? (undefined as never) : (v as Task["thresholdType"]))
+            }
+          >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
+              <SelectItem value="__none">None</SelectItem>
               {THRESHOLD_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label>Threshold (numeric)</Label>
+          <Label>Threshold (numeric, optional)</Label>
           <Input
             type="number"
             value={form.thresholdNumeric ?? ""}
@@ -172,10 +179,21 @@ export function TaskForm({ initial, onDone }: Props) {
         </div>
 
         <div className="space-y-2 sm:col-span-2">
-          <Label>Threshold (text)</Label>
+          <Label>Threshold (text, optional)</Label>
           <Input
             value={form.thresholdText ?? ""}
             onChange={(e) => set("thresholdText", e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="link">Link (optional)</Label>
+          <Input
+            id="link"
+            type="url"
+            placeholder="https://…"
+            value={form.link ?? ""}
+            onChange={(e) => set("link", e.target.value)}
           />
         </div>
       </div>

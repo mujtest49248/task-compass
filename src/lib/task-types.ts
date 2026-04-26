@@ -6,19 +6,30 @@ export const COLLECTION_TYPES = ["Manual", "Auto"] as const;
 export const FREQUENCIES = ["Daily", "Weekly", "Monthly", "Quarterly", "Yearly", "Ad-hoc"] as const;
 export const THRESHOLD_TYPES = ["MIN", "MAX", "Exact"] as const;
 
+const optionalUrl = z
+  .string()
+  .trim()
+  .max(2000)
+  .optional()
+  .refine(
+    (v) => !v || /^(https?:\/\/|\/|mailto:|tel:)/i.test(v),
+    { message: "Must be a valid URL" },
+  );
+
 export const taskSchema = z
   .object({
     taskId: z.string().trim().min(1, "Task ID is required").max(64),
     name: z.string().trim().min(1, "Name is required").max(200),
     type: z.enum(TASK_TYPES),
     description: z.string().trim().max(2000).optional().default(""),
+    link: optionalUrl,
     valueType: z.enum(VALUE_TYPES),
     collectionType: z.enum(COLLECTION_TYPES),
     frequency: z.enum(FREQUENCIES),
     adHocDate: z.string().optional(),
     thresholdNumeric: z.union([z.number(), z.nan()]).optional(),
     thresholdText: z.string().trim().max(200).optional().default(""),
-    thresholdType: z.enum(THRESHOLD_TYPES),
+    thresholdType: z.enum(THRESHOLD_TYPES).optional(),
     assignee: z.string().trim().min(1, "Assignee is required").max(120),
     active: z.boolean(),
   })

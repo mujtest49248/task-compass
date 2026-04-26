@@ -6,6 +6,7 @@ const HEADERS = [
   "name",
   "type",
   "description",
+  "link",
   "valueType",
   "collectionType",
   "frequency",
@@ -23,13 +24,14 @@ export function exportTasksToXlsx(tasks: Task[]) {
     name: t.name,
     type: t.type,
     description: t.description ?? "",
+    link: t.link ?? "",
     valueType: t.valueType,
     collectionType: t.collectionType,
     frequency: t.frequency,
     adHocDate: t.adHocDate ?? "",
     thresholdNumeric: t.thresholdNumeric ?? "",
     thresholdText: t.thresholdText ?? "",
-    thresholdType: t.thresholdType,
+    thresholdType: t.thresholdType ?? "",
     assignee: t.assignee,
     active: t.active ? "TRUE" : "FALSE",
   }));
@@ -111,6 +113,7 @@ export async function parseTasksFromFile(file: File): Promise<ImportResult> {
       name: String(r.name ?? "").trim(),
       type: String(r.type ?? "").trim() as Task["type"],
       description: String(r.description ?? "").trim(),
+      link: r.link ? String(r.link).trim() : undefined,
       valueType: String(r.valueType ?? "").trim() as Task["valueType"],
       collectionType: String(r.collectionType ?? "").trim() as Task["collectionType"],
       frequency: String(r.frequency ?? "").trim() as Task["frequency"],
@@ -120,7 +123,9 @@ export async function parseTasksFromFile(file: File): Promise<ImportResult> {
           ? undefined
           : Number(numRaw),
       thresholdText: String(r.thresholdText ?? "").trim(),
-      thresholdType: String(r.thresholdType ?? "").trim() as Task["thresholdType"],
+      thresholdType: r.thresholdType
+        ? (String(r.thresholdType).trim() as Task["thresholdType"])
+        : undefined,
       assignee: String(r.assignee ?? "").trim(),
       active: activeStr === "" ? true : ["true", "1", "yes", "y"].includes(activeRaw),
     };

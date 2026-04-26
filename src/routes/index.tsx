@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle, Edit3 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle, Edit3, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { exportTasksToXlsx, exportTasksToJson, parseTasksFromFile } from "@/lib/task-xlsx";
 import { Toaster } from "@/components/ui/sonner";
@@ -436,7 +436,23 @@ function Index() {
                     />
                   </TableCell>
                   <TableCell className="font-mono text-xs">{t.taskId}</TableCell>
-                  <TableCell className="font-medium">{t.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <span>{t.name}</span>
+                      {t.link && (
+                        <a
+                          href={t.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-primary"
+                          aria-label={`Open link for ${t.name}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell><Badge variant="secondary">{t.type}</Badge></TableCell>
                   <TableCell>
                     {t.frequency}
@@ -444,8 +460,16 @@ function Index() {
                   </TableCell>
                   <TableCell>{t.collectionType}</TableCell>
                   <TableCell className="text-sm">
-                    <span className="text-muted-foreground">{t.thresholdType}:</span>{" "}
-                    {t.thresholdNumeric ?? t.thresholdText ?? "—"}
+                    {t.thresholdType || t.thresholdNumeric != null || t.thresholdText ? (
+                      <>
+                        {t.thresholdType && (
+                          <span className="text-muted-foreground">{t.thresholdType}: </span>
+                        )}
+                        {t.thresholdNumeric ?? t.thresholdText ?? "—"}
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell>{t.assignee}</TableCell>
                   <TableCell>

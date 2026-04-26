@@ -37,6 +37,7 @@ type BulkFields = {
   thresholdText: boolean;
   assignee: boolean;
   active: boolean;
+  link: boolean;
 };
 
 function FieldRow({
@@ -79,17 +80,19 @@ export function BulkEditForm({ ids, onDone }: Props) {
     thresholdText: false,
     assignee: false,
     active: false,
+    link: false,
   });
   const [values, setValues] = useState<Partial<Task>>({
     type: "K",
     valueType: "Numeric",
     collectionType: "Manual",
     frequency: "Daily",
-    thresholdType: "MIN",
+    thresholdType: undefined,
     thresholdNumeric: undefined,
     thresholdText: "",
     assignee: "",
     active: true,
+    link: "",
   });
 
   const toggle = (k: keyof BulkFields) => setEnabled((p) => ({ ...p, [k]: !p[k] }));
@@ -177,9 +180,15 @@ export function BulkEditForm({ ids, onDone }: Props) {
         </Row>
 
         <Row field="thresholdType" label="Threshold type">
-          <Select value={values.thresholdType} onValueChange={(v) => set("thresholdType", v as Task["thresholdType"])}>
+          <Select
+            value={values.thresholdType ?? "__none"}
+            onValueChange={(v) =>
+              set("thresholdType", v === "__none" ? (undefined as never) : (v as Task["thresholdType"]))
+            }
+          >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
+              <SelectItem value="__none">None</SelectItem>
               {THRESHOLD_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -199,6 +208,15 @@ export function BulkEditForm({ ids, onDone }: Props) {
           <Input
             value={values.thresholdText ?? ""}
             onChange={(e) => set("thresholdText", e.target.value)}
+          />
+        </Row>
+
+        <Row field="link" label="Link">
+          <Input
+            type="url"
+            placeholder="https://…"
+            value={values.link ?? ""}
+            onChange={(e) => set("link", e.target.value)}
           />
         </Row>
 
