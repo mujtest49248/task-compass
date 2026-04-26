@@ -24,11 +24,12 @@ export type Database = {
           description: string
           frequency: string
           id: string
+          link: string | null
           name: string
           task_id: string
           threshold_numeric: number | null
-          threshold_text: string
-          threshold_type: string
+          threshold_text: string | null
+          threshold_type: string | null
           type: string
           updated_at: string
           value_type: string
@@ -42,11 +43,12 @@ export type Database = {
           description?: string
           frequency: string
           id?: string
+          link?: string | null
           name: string
           task_id: string
           threshold_numeric?: number | null
-          threshold_text?: string
-          threshold_type: string
+          threshold_text?: string | null
+          threshold_type?: string | null
           type: string
           updated_at?: string
           value_type: string
@@ -60,11 +62,12 @@ export type Database = {
           description?: string
           frequency?: string
           id?: string
+          link?: string | null
           name?: string
           task_id?: string
           threshold_numeric?: number | null
-          threshold_text?: string
-          threshold_type?: string
+          threshold_text?: string | null
+          threshold_type?: string | null
           type?: string
           updated_at?: string
           value_type?: string
