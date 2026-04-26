@@ -192,7 +192,7 @@ export function ImportReviewDialog({ open, drafts: initial, onCancel, onConfirm 
       <div className="space-y-1">
         <Label className="text-xs">{field.label}</Label>
         <Input
-          type={field.kind === "date" ? "date" : "text"}
+          type={field.kind === "date" ? "date" : field.kind === "url" ? "url" : "text"}
           className={common}
           value={(value as string) ?? ""}
           onChange={(e) => onText(e.target.value)}
