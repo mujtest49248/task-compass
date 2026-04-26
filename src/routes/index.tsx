@@ -392,7 +392,7 @@ function Index() {
               <TableRow>
                 <TableHead className="w-10">
                   <Checkbox
-                    checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
+                    checked={selectAllChecked}
                     onCheckedChange={(v) => toggleSelectAll(v === true)}
                     aria-label="Select all"
                   />
