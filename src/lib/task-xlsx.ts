@@ -55,9 +55,41 @@ export function exportTasksToJson(tasks: Task[]) {
   URL.revokeObjectURL(url);
 }
 
+export type DraftTask = Partial<Task> & { taskId?: string };
+
+export interface DraftRow {
+  row: number;
+  draft: DraftTask;
+  fieldErrors: Record<string, string>;
+}
+
 export interface ImportResult {
   valid: Task[];
-  errors: { row: number; message: string }[];
+  drafts: DraftRow[];
+}
+
+function validateDraft(draft: DraftTask): { task?: Task; fieldErrors: Record<string, string> } {
+  const candidate = {
+    ...draft,
+    description: draft.description ?? "",
+    thresholdText: draft.thresholdText ?? "",
+    thresholdNumeric:
+      typeof draft.thresholdNumeric === "number" && !Number.isNaN(draft.thresholdNumeric)
+        ? draft.thresholdNumeric
+        : undefined,
+  };
+  const parsed = taskSchema.safeParse(candidate);
+  if (parsed.success) return { task: parsed.data, fieldErrors: {} };
+  const fieldErrors: Record<string, string> = {};
+  for (const issue of parsed.error.issues) {
+    const key = String(issue.path[0] ?? "_");
+    if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+  }
+  return { fieldErrors };
+}
+
+export function validateDraftRow(draft: DraftTask) {
+  return validateDraft(draft);
 }
 
 export async function parseTasksFromFile(file: File): Promise<ImportResult> {
@@ -67,37 +99,35 @@ export async function parseTasksFromFile(file: File): Promise<ImportResult> {
   const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
 
   const valid: Task[] = [];
-  const errors: ImportResult["errors"] = [];
+  const drafts: DraftRow[] = [];
 
   raw.forEach((r, i) => {
-    const rowNum = i + 2; // header is row 1
-    const activeRaw = String(r.active ?? "").trim().toLowerCase();
+    const rowNum = i + 2;
+    const activeStr = String(r.active ?? "").trim();
+    const activeRaw = activeStr.toLowerCase();
     const numRaw = r.thresholdNumeric;
-    const candidate = {
+    const draft: DraftTask = {
       taskId: String(r.taskId ?? "").trim(),
       name: String(r.name ?? "").trim(),
-      type: String(r.type ?? "").trim(),
+      type: String(r.type ?? "").trim() as Task["type"],
       description: String(r.description ?? "").trim(),
-      valueType: String(r.valueType ?? "").trim(),
-      collectionType: String(r.collectionType ?? "").trim(),
-      frequency: String(r.frequency ?? "").trim(),
+      valueType: String(r.valueType ?? "").trim() as Task["valueType"],
+      collectionType: String(r.collectionType ?? "").trim() as Task["collectionType"],
+      frequency: String(r.frequency ?? "").trim() as Task["frequency"],
       adHocDate: r.adHocDate ? String(r.adHocDate).trim() : undefined,
       thresholdNumeric:
         numRaw === "" || numRaw === null || numRaw === undefined
           ? undefined
           : Number(numRaw),
       thresholdText: String(r.thresholdText ?? "").trim(),
-      thresholdType: String(r.thresholdType ?? "").trim(),
+      thresholdType: String(r.thresholdType ?? "").trim() as Task["thresholdType"],
       assignee: String(r.assignee ?? "").trim(),
-      active: ["true", "1", "yes", "y"].includes(activeRaw),
+      active: activeStr === "" ? true : ["true", "1", "yes", "y"].includes(activeRaw),
     };
-    const parsed = taskSchema.safeParse(candidate);
-    if (!parsed.success) {
-      errors.push({ row: rowNum, message: parsed.error.issues[0]?.message ?? "Invalid row" });
-    } else {
-      valid.push(parsed.data);
-    }
+    const { task, fieldErrors } = validateDraft(draft);
+    if (task) valid.push(task);
+    else drafts.push({ row: rowNum, draft, fieldErrors });
   });
 
-  return { valid, errors };
+  return { valid, drafts };
 }
