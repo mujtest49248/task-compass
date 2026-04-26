@@ -51,8 +51,10 @@ import {
 } from "@/components/ui/select";
 import { TaskForm } from "@/components/TaskForm";
 import { BulkEditForm } from "@/components/BulkEditForm";
+import { ImportReviewDialog } from "@/components/ImportReviewDialog";
 import { taskStore, useTasks } from "@/lib/task-store";
 import type { Task } from "@/lib/task-types";
+import type { DraftRow } from "@/lib/task-xlsx";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -78,26 +80,35 @@ function Index() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [reviewDrafts, setReviewDrafts] = useState<DraftRow[]>([]);
+  const [reviewOpen, setReviewOpen] = useState(false);
+
+  const importTasks = (toImport: Task[]) => {
+    let added = 0;
+    let updated = 0;
+    toImport.forEach((t) => {
+      if (taskStore.get(t.taskId)) updated++;
+      else added++;
+      taskStore.upsert(t);
+    });
+    return { added, updated };
+  };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
     try {
-      const { valid, errors } = await parseTasksFromFile(file);
-      let added = 0;
-      let updated = 0;
-      valid.forEach((t) => {
-        if (taskStore.get(t.taskId)) updated++;
-        else added++;
-        taskStore.upsert(t);
-      });
-      if (errors.length) {
-        toast.warning(`Imported ${valid.length} (${added} new, ${updated} updated). ${errors.length} row(s) skipped`, {
-          description: errors.slice(0, 3).map((e) => `Row ${e.row}: ${e.message}`).join(" • "),
-        });
-      } else {
+      const { valid, drafts } = await parseTasksFromFile(file);
+      if (valid.length) {
+        const { added, updated } = importTasks(valid);
         toast.success(`Imported ${valid.length} task(s) — ${added} new, ${updated} updated`);
+      }
+      if (drafts.length) {
+        setReviewDrafts(drafts);
+        setReviewOpen(true);
+      } else if (!valid.length) {
+        toast.info("No tasks found in file");
       }
     } catch (err) {
       toast.error("Failed to read file", { description: err instanceof Error ? err.message : "Unknown error" });
@@ -514,6 +525,21 @@ function Index() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ImportReviewDialog
+        open={reviewOpen}
+        drafts={reviewDrafts}
+        onCancel={() => {
+          setReviewOpen(false);
+          setReviewDrafts([]);
+        }}
+        onConfirm={(toImport) => {
+          const { added, updated } = importTasks(toImport);
+          toast.success(`Imported ${toImport.length} fixed task(s) — ${added} new, ${updated} updated`);
+          setReviewOpen(false);
+          setReviewDrafts([]);
+        }}
+      />
     </div>
   );
 }
