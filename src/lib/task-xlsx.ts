@@ -51,7 +51,7 @@ export function exportTasksToJson(tasks: Task[]) {
   a.download = `tasks-${stamp}.json`;
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
+  a.remove();
   URL.revokeObjectURL(url);
 }
 
