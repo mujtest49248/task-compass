@@ -172,24 +172,7 @@ export const taskStore = {
     const prev = tasks;
     tasks = tasks.map((t) => (idSet.has(t.taskId) ? { ...t, ...patch } : t));
     emit();
-    // Build a row-shaped patch (only include keys present in patch)
-    const rowPatch: TablesUpdate<"tasks"> = {};
-    if ("type" in patch) rowPatch.type = patch.type;
-    if ("valueType" in patch) rowPatch.value_type = patch.valueType;
-    if ("collectionType" in patch) rowPatch.collection_type = patch.collectionType;
-    if ("frequency" in patch) rowPatch.frequency = patch.frequency;
-    if ("adHocDate" in patch) rowPatch.ad_hoc_date = patch.adHocDate ?? null;
-    if ("thresholdType" in patch) rowPatch.threshold_type = patch.thresholdType;
-    if ("thresholdNumeric" in patch)
-      rowPatch.threshold_numeric =
-        typeof patch.thresholdNumeric === "number" && !Number.isNaN(patch.thresholdNumeric)
-          ? patch.thresholdNumeric
-          : null;
-    if ("thresholdText" in patch) rowPatch.threshold_text = patch.thresholdText ?? "";
-    if ("assignee" in patch) rowPatch.assignee = patch.assignee;
-    if ("active" in patch) rowPatch.active = patch.active;
-    if ("description" in patch) rowPatch.description = patch.description ?? "";
-    if ("name" in patch) rowPatch.name = patch.name;
+    const rowPatch = buildRowPatch(patch);
     const { error } = await supabase.from("tasks").update(rowPatch).in("task_id", ids);
     if (error) {
       console.error("Failed to bulk edit tasks:", error);
