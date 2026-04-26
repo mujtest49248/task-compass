@@ -160,6 +160,9 @@ function Index() {
   );
   const allVisibleSelected = filtered.length > 0 && selectedIds.length === filtered.length;
   const someVisibleSelected = selectedIds.length > 0 && !allVisibleSelected;
+  let selectAllChecked: boolean | "indeterminate" = false;
+  if (allVisibleSelected) selectAllChecked = true;
+  else if (someVisibleSelected) selectAllChecked = "indeterminate";
   const toggleSelectAll = (checked: boolean) => {
     setSelected(checked ? new Set(filtered.map((t) => t.taskId)) : new Set());
   };
@@ -389,7 +392,7 @@ function Index() {
               <TableRow>
                 <TableHead className="w-10">
                   <Checkbox
-                    checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
+                    checked={selectAllChecked}
                     onCheckedChange={(v) => toggleSelectAll(v === true)}
                     aria-label="Select all"
                   />
