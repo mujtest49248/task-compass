@@ -37,6 +37,7 @@ type BulkFields = {
   thresholdText: boolean;
   assignee: boolean;
   active: boolean;
+  link: boolean;
 };
 
 function FieldRow({
