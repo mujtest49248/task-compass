@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle, Edit3 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle, Edit3, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { exportTasksToXlsx, exportTasksToJson, parseTasksFromFile } from "@/lib/task-xlsx";
 import { Toaster } from "@/components/ui/sonner";
