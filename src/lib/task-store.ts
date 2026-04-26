@@ -13,13 +13,14 @@ type Row = {
   name: string;
   type: string;
   description: string | null;
+  link: string | null;
   value_type: string;
   collection_type: string;
   frequency: string;
   ad_hoc_date: string | null;
   threshold_numeric: number | null;
   threshold_text: string | null;
-  threshold_type: string;
+  threshold_type: string | null;
   assignee: string;
   active: boolean;
 };
@@ -30,13 +31,14 @@ function rowToTask(r: Row): Task {
     name: r.name,
     type: r.type as Task["type"],
     description: r.description ?? "",
+    link: r.link ?? undefined,
     valueType: r.value_type as Task["valueType"],
     collectionType: r.collection_type as Task["collectionType"],
     frequency: r.frequency as Task["frequency"],
     adHocDate: r.ad_hoc_date ?? undefined,
     thresholdNumeric: r.threshold_numeric ?? undefined,
     thresholdText: r.threshold_text ?? "",
-    thresholdType: r.threshold_type as Task["thresholdType"],
+    thresholdType: (r.threshold_type as Task["thresholdType"]) ?? undefined,
     assignee: r.assignee,
     active: r.active,
   };
@@ -48,6 +50,7 @@ function taskToRow(t: Task) {
     name: t.name,
     type: t.type,
     description: t.description ?? "",
+    link: t.link && t.link.length > 0 ? t.link : null,
     value_type: t.valueType,
     collection_type: t.collectionType,
     frequency: t.frequency,
@@ -57,7 +60,7 @@ function taskToRow(t: Task) {
         ? t.thresholdNumeric
         : null,
     threshold_text: t.thresholdText ?? "",
-    threshold_type: t.thresholdType,
+    threshold_type: t.thresholdType ?? null,
     assignee: t.assignee,
     active: t.active,
   };
@@ -67,6 +70,7 @@ const FIELD_MAP: Record<string, keyof TablesUpdate<"tasks">> = {
   name: "name",
   type: "type",
   description: "description",
+  link: "link" as keyof TablesUpdate<"tasks">,
   valueType: "value_type",
   collectionType: "collection_type",
   frequency: "frequency",
@@ -80,6 +84,8 @@ const FIELD_MAP: Record<string, keyof TablesUpdate<"tasks">> = {
 
 function normalizeFieldValue(key: string, value: unknown): unknown {
   if (key === "adHocDate") return value ?? null;
+  if (key === "link") return value && String(value).length > 0 ? value : null;
+  if (key === "thresholdType") return value ?? null;
   if (key === "thresholdNumeric") {
     return typeof value === "number" && !Number.isNaN(value) ? value : null;
   }
