@@ -39,6 +39,35 @@ type BulkFields = {
   active: boolean;
 };
 
+function FieldRow({
+  field,
+  label,
+  enabled,
+  onToggle,
+  children,
+}: {
+  field: keyof BulkFields;
+  label: string;
+  enabled: boolean;
+  onToggle: (field: keyof BulkFields) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-lg border p-3">
+      <Checkbox
+        checked={enabled}
+        onCheckedChange={() => onToggle(field)}
+        className="mt-2"
+        aria-label={`Enable ${label}`}
+      />
+      <div className="flex-1 space-y-2">
+        <Label className="text-sm">{label}</Label>
+        <div className={enabled ? "" : "pointer-events-none opacity-50"}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export function BulkEditForm({ ids, onDone }: Props) {
   const [enabled, setEnabled] = useState<BulkFields>({
     type: false,
@@ -95,20 +124,9 @@ export function BulkEditForm({ ids, onDone }: Props) {
     label: string;
     children: React.ReactNode;
   }) => (
-    <div className="flex items-start gap-3 rounded-lg border p-3">
-      <Checkbox
-        checked={enabled[field]}
-        onCheckedChange={() => toggle(field)}
-        className="mt-2"
-        aria-label={`Enable ${label}`}
-      />
-      <div className="flex-1 space-y-2">
-        <Label className="text-sm">{label}</Label>
-        <div className={enabled[field] ? "" : "pointer-events-none opacity-50"}>
-          {children}
-        </div>
-      </div>
-    </div>
+    <FieldRow field={field} label={label} enabled={enabled[field]} onToggle={toggle}>
+      {children}
+    </FieldRow>
   );
 
   return (
