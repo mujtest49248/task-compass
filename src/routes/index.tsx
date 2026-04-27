@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
-import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle, Edit3, ExternalLink } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle, Edit3, ExternalLink, LogOut, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { exportTasksToXlsx, exportTasksToJson, parseTasksFromFile } from "@/lib/task-xlsx";
 import { Toaster } from "@/components/ui/sonner";
@@ -55,6 +55,7 @@ import { ImportReviewDialog } from "@/components/ImportReviewDialog";
 import { taskStore, useTasks } from "@/lib/task-store";
 import type { Task } from "@/lib/task-types";
 import type { DraftRow } from "@/lib/task-xlsx";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
