@@ -68,6 +68,11 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const { user, isAdmin, canManageTasks, loading: authLoading, signOut } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!authLoading && !user) navigate({ to: "/login" });
+  }, [authLoading, user, navigate]);
   const tasks = useTasks();
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
