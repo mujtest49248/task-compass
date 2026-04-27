@@ -230,6 +230,14 @@ function Index() {
     auto: tasks.filter((t) => t.collectionType === "Auto").length,
   }), [tasks]);
 
+  if (authLoading || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Toaster richColors position="top-right" />
@@ -253,9 +261,11 @@ function Index() {
               className="hidden"
               onChange={handleImport}
             />
-            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-              <Upload className="mr-2 h-4 w-4" />Import
-            </Button>
+            {canManageTasks && (
+              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                <Upload className="mr-2 h-4 w-4" />Import
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
