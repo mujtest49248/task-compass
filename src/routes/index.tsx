@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
-import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle, Edit3, ExternalLink } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, Pencil, Trash2, Search, ListChecks, Download, Upload, CheckCircle2, XCircle, Edit3, ExternalLink, LogOut, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { exportTasksToXlsx, exportTasksToJson, parseTasksFromFile } from "@/lib/task-xlsx";
 import { Toaster } from "@/components/ui/sonner";
@@ -55,6 +55,7 @@ import { ImportReviewDialog } from "@/components/ImportReviewDialog";
 import { taskStore, useTasks } from "@/lib/task-store";
 import type { Task } from "@/lib/task-types";
 import type { DraftRow } from "@/lib/task-xlsx";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -67,6 +68,11 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const { user, isAdmin, canManageTasks, loading: authLoading, signOut } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!authLoading && !user) navigate({ to: "/login" });
+  }, [authLoading, user, navigate]);
   const tasks = useTasks();
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -224,6 +230,14 @@ function Index() {
     auto: tasks.filter((t) => t.collectionType === "Auto").length,
   }), [tasks]);
 
+  if (authLoading || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Toaster richColors position="top-right" />
@@ -247,9 +261,11 @@ function Index() {
               className="hidden"
               onChange={handleImport}
             />
-            <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-              <Upload className="mr-2 h-4 w-4" />Import
-            </Button>
+            {canManageTasks && (
+              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                <Upload className="mr-2 h-4 w-4" />Import
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -277,34 +293,47 @@ function Index() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">By type</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Toggle active by type</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {(["K", "R", "O"] as const).map((t) => (
-                  <div key={t}>
-                    <DropdownMenuItem onClick={() => setActiveByType(t, true)}>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />Activate all {t}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveByType(t, false)}>
-                      <XCircle className="mr-2 h-4 w-4" />Deactivate all {t}
-                    </DropdownMenuItem>
-                  </div>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm"><Plus className="mr-2 h-4 w-4" />New task</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader><DialogTitle>Create task</DialogTitle></DialogHeader>
-                <TaskForm onDone={() => setCreateOpen(false)} />
-              </DialogContent>
-            </Dialog>
+            {canManageTasks && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">By type</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Toggle active by type</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {(["K", "R", "O"] as const).map((t) => (
+                    <div key={t}>
+                      <DropdownMenuItem onClick={() => setActiveByType(t, true)}>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />Activate all {t}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveByType(t, false)}>
+                        <XCircle className="mr-2 h-4 w-4" />Deactivate all {t}
+                      </DropdownMenuItem>
+                    </div>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {canManageTasks && (
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm"><Plus className="mr-2 h-4 w-4" />New task</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader><DialogTitle>Create task</DialogTitle></DialogHeader>
+                  <TaskForm onDone={() => setCreateOpen(false)} />
+                </DialogContent>
+              </Dialog>
+            )}
+            {isAdmin && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin"><Shield className="mr-2 h-4 w-4" />Admin</Link>
+              </Button>
+            )}
+            <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
+            <Button variant="ghost" size="sm" onClick={() => signOut().then(() => navigate({ to: "/login" }))}>
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>
