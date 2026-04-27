@@ -293,34 +293,47 @@ function Index() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">By type</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Toggle active by type</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {(["K", "R", "O"] as const).map((t) => (
-                  <div key={t}>
-                    <DropdownMenuItem onClick={() => setActiveByType(t, true)}>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />Activate all {t}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveByType(t, false)}>
-                      <XCircle className="mr-2 h-4 w-4" />Deactivate all {t}
-                    </DropdownMenuItem>
-                  </div>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm"><Plus className="mr-2 h-4 w-4" />New task</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader><DialogTitle>Create task</DialogTitle></DialogHeader>
-                <TaskForm onDone={() => setCreateOpen(false)} />
-              </DialogContent>
-            </Dialog>
+            {canManageTasks && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">By type</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Toggle active by type</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {(["K", "R", "O"] as const).map((t) => (
+                    <div key={t}>
+                      <DropdownMenuItem onClick={() => setActiveByType(t, true)}>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />Activate all {t}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveByType(t, false)}>
+                        <XCircle className="mr-2 h-4 w-4" />Deactivate all {t}
+                      </DropdownMenuItem>
+                    </div>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {canManageTasks && (
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm"><Plus className="mr-2 h-4 w-4" />New task</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader><DialogTitle>Create task</DialogTitle></DialogHeader>
+                  <TaskForm onDone={() => setCreateOpen(false)} />
+                </DialogContent>
+              </Dialog>
+            )}
+            {isAdmin && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin"><Shield className="mr-2 h-4 w-4" />Admin</Link>
+              </Button>
+            )}
+            <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
+            <Button variant="ghost" size="sm" onClick={() => signOut().then(() => navigate({ to: "/login" }))}>
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>
