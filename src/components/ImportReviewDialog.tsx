@@ -39,8 +39,20 @@ interface Props {
 }
 
 type EditableField = Exclude<keyof Task, "taskId">;
+type FieldKind = "text" | "number" | "date" | "switch" | "select" | "url";
 
-const FIELDS: { key: EditableField; label: string; kind: "text" | "number" | "date" | "switch" | "select" | "url"; options?: readonly string[] }[] = [
+const HTML_INPUT_TYPE: Record<FieldKind, string> = {
+  number: "number",
+  date: "date",
+  url: "url",
+  text: "text",
+  switch: "text",
+  select: "text",
+};
+
+const inputTypeFor = (kind: FieldKind) => HTML_INPUT_TYPE[kind];
+
+const FIELDS: { key: EditableField; label: string; kind: FieldKind; options?: readonly string[] }[] = [
   { key: "name", label: "Name", kind: "text" },
   { key: "type", label: "Type", kind: "select", options: TASK_TYPES },
   { key: "valueType", label: "Value type", kind: "select", options: VALUE_TYPES },
