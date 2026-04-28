@@ -39,8 +39,20 @@ interface Props {
 }
 
 type EditableField = Exclude<keyof Task, "taskId">;
+type FieldKind = "text" | "number" | "date" | "switch" | "select" | "url";
 
-const FIELDS: { key: EditableField; label: string; kind: "text" | "number" | "date" | "switch" | "select" | "url"; options?: readonly string[] }[] = [
+const HTML_INPUT_TYPE: Record<FieldKind, string> = {
+  number: "number",
+  date: "date",
+  url: "url",
+  text: "text",
+  switch: "text",
+  select: "text",
+};
+
+const inputTypeFor = (kind: FieldKind) => HTML_INPUT_TYPE[kind];
+
+const FIELDS: { key: EditableField; label: string; kind: FieldKind; options?: readonly string[] }[] = [
   { key: "name", label: "Name", kind: "text" },
   { key: "type", label: "Type", kind: "select", options: TASK_TYPES },
   { key: "valueType", label: "Value type", kind: "select", options: VALUE_TYPES },
@@ -192,7 +204,7 @@ export function ImportReviewDialog({ open, drafts: initial, onCancel, onConfirm 
       <div className="space-y-1">
         <Label className="text-xs">{field.label}</Label>
         <Input
-          type={field.kind === "date" ? "date" : field.kind === "url" ? "url" : "text"}
+          type={inputTypeFor(field.kind)}
           className={common}
           value={(value as string) ?? ""}
           onChange={(e) => onText(e.target.value)}
@@ -249,7 +261,7 @@ export function ImportReviewDialog({ open, drafts: initial, onCancel, onConfirm 
                 </Select>
               ) : (
                 <Input
-                  type={fieldDef.kind === "number" ? "number" : fieldDef.kind === "date" ? "date" : "text"}
+                  type={inputTypeFor(fieldDef.kind)}
                   value={bulkValue}
                   onChange={(e) => setBulkValue(e.target.value)}
                 />
