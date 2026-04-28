@@ -261,7 +261,7 @@ export function ImportReviewDialog({ open, drafts: initial, onCancel, onConfirm 
                 </Select>
               ) : (
                 <Input
-                  type={fieldDef.kind === "number" ? "number" : fieldDef.kind === "date" ? "date" : "text"}
+                  type={inputTypeFor(fieldDef.kind)}
                   value={bulkValue}
                   onChange={(e) => setBulkValue(e.target.value)}
                 />
