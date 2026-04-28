@@ -109,6 +109,18 @@ export function BulkEditForm({ ids, onDone }: Props) {
       toast.error("Select at least one field to update");
       return;
     }
+    if (enabled.link) {
+      const link = (values.link ?? "").trim();
+      if (link && !/^(https?:\/\/|\/|mailto:|tel:)/i.test(link)) {
+        toast.error("Link must start with http(s)://, /, mailto:, or tel:");
+        return;
+      }
+      if (link.length > 2000) {
+        toast.error("Link is too long");
+        return;
+      }
+      (patch as Record<string, unknown>).link = link || null;
+    }
     try {
       await taskStore.updateMany(ids, patch);
       toast.success(`Updated ${ids.length} task(s)`);
