@@ -130,20 +130,6 @@ export function BulkEditForm({ ids, onDone }: Props) {
     }
   };
 
-  const Row = ({
-    field,
-    label,
-    children,
-  }: {
-    field: keyof BulkFields;
-    label: string;
-    children: React.ReactNode;
-  }) => (
-    <FieldRow field={field} label={label} enabled={enabled[field]} onToggle={toggle}>
-      {children}
-    </FieldRow>
-  );
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <p className="text-sm text-muted-foreground">
@@ -151,47 +137,47 @@ export function BulkEditForm({ ids, onDone }: Props) {
       </p>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Row field="type" label="Task type">
+        <FieldRow field="type" label="Task type" enabled={enabled.type} onToggle={toggle}>
           <Select value={values.type} onValueChange={(v) => set("type", v as Task["type"])}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {TASK_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
-        </Row>
+        </FieldRow>
 
-        <Row field="assignee" label="Assignee">
+        <FieldRow field="assignee" label="Assignee" enabled={enabled.assignee} onToggle={toggle}>
           <Input value={values.assignee ?? ""} onChange={(e) => set("assignee", e.target.value)} />
-        </Row>
+        </FieldRow>
 
-        <Row field="valueType" label="Value type">
+        <FieldRow field="valueType" label="Value type" enabled={enabled.valueType} onToggle={toggle}>
           <Select value={values.valueType} onValueChange={(v) => set("valueType", v as Task["valueType"])}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {VALUE_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
-        </Row>
+        </FieldRow>
 
-        <Row field="collectionType" label="Collection type">
+        <FieldRow field="collectionType" label="Collection type" enabled={enabled.collectionType} onToggle={toggle}>
           <Select value={values.collectionType} onValueChange={(v) => set("collectionType", v as Task["collectionType"])}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {COLLECTION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
-        </Row>
+        </FieldRow>
 
-        <Row field="frequency" label="Frequency">
+        <FieldRow field="frequency" label="Frequency" enabled={enabled.frequency} onToggle={toggle}>
           <Select value={values.frequency} onValueChange={(v) => set("frequency", v as Task["frequency"])}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {FREQUENCIES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
-        </Row>
+        </FieldRow>
 
-        <Row field="thresholdType" label="Threshold type">
+        <FieldRow field="thresholdType" label="Threshold type" enabled={enabled.thresholdType} onToggle={toggle}>
           <Select
             value={values.thresholdType ?? "__none"}
             onValueChange={(v) =>
@@ -204,9 +190,9 @@ export function BulkEditForm({ ids, onDone }: Props) {
               {THRESHOLD_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
-        </Row>
+        </FieldRow>
 
-        <Row field="thresholdNumeric" label="Threshold (numeric)">
+        <FieldRow field="thresholdNumeric" label="Threshold (numeric)" enabled={enabled.thresholdNumeric} onToggle={toggle}>
           <Input
             type="number"
             value={values.thresholdNumeric ?? ""}
@@ -214,32 +200,32 @@ export function BulkEditForm({ ids, onDone }: Props) {
               set("thresholdNumeric", e.target.value === "" ? (undefined as never) : Number(e.target.value))
             }
           />
-        </Row>
+        </FieldRow>
 
-        <Row field="thresholdText" label="Threshold (text)">
+        <FieldRow field="thresholdText" label="Threshold (text)" enabled={enabled.thresholdText} onToggle={toggle}>
           <Input
             value={values.thresholdText ?? ""}
             onChange={(e) => set("thresholdText", e.target.value)}
           />
-        </Row>
+        </FieldRow>
 
-        <Row field="link" label="Link">
+        <FieldRow field="link" label="Link" enabled={enabled.link} onToggle={toggle}>
           <Input
             type="url"
             placeholder="https://…"
             value={values.link ?? ""}
             onChange={(e) => set("link", e.target.value)}
           />
-        </Row>
+        </FieldRow>
 
-        <Row field="active" label="Active">
+        <FieldRow field="active" label="Active" enabled={enabled.active} onToggle={toggle}>
           <div className="flex items-center gap-3">
             <Switch checked={!!values.active} onCheckedChange={(v) => set("active", v)} />
             <span className="text-sm text-muted-foreground">
               {values.active ? "Activate" : "Deactivate"}
             </span>
           </div>
-        </Row>
+        </FieldRow>
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
