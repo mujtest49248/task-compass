@@ -362,7 +362,7 @@ function ResetPasswordForm({ userId, onDone }: { userId: string; onDone: () => v
         <Label htmlFor="reset-pw">New password</Label>
         <Input
           id="reset-pw"
-          type="text"
+          type="password"
           required
           minLength={8}
           value={password}
