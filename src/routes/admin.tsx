@@ -310,7 +310,7 @@ function CreateUserForm({ onCreated }: { onCreated: () => void }) {
         <Label htmlFor="new-password">Password (min 8 chars)</Label>
         <Input
           id="new-password"
-          type="text"
+          type="password"
           required
           minLength={8}
           value={password}
@@ -362,7 +362,7 @@ function ResetPasswordForm({ userId, onDone }: { userId: string; onDone: () => v
         <Label htmlFor="reset-pw">New password</Label>
         <Input
           id="reset-pw"
-          type="text"
+          type="password"
           required
           minLength={8}
           value={password}
