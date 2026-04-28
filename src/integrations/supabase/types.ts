@@ -121,6 +121,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _admin_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       can_manage_tasks: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
